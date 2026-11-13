@@ -2901,6 +2901,76 @@ class PartAPIAggregationTest(InvenTreeAPITestCase):
         # No results should be returned, as the part is no longer low on stock
         self.assertEqual(len(response.data), 0)
 
+    def test_needs_ordering(self):
+        """Test the 'needs_ordering' filter."""
+        from company.models import Company, SupplierPart
+        from order.models import PurchaseOrder, PurchaseOrderLineItem
+        from order.status_codes import PurchaseOrderStatus
+
+        url = reverse('api-part-list')
+
+        def needs_ordering(value: bool = True) -> set:
+            response = self.get(url, {'needs_ordering': value}, expected_code=200)
+            return {part['pk'] for part in response.data}
+
+        # Parts which need ordering before the test part is created
+        baseline = needs_ordering()
+
+        part = Part.objects.create(
+            name='Needs Ordering Part',
+            description='A part which needs to be ordered',
+            category=PartCategory.objects.get(pk=1),
+            minimum_stock=10,
+            purchaseable=True,
+        )
+
+        # Below minimum stock, nothing on order
+        self.assertEqual(needs_ordering() - baseline, {part.pk})
+        self.assertNotIn(part.pk, needs_ordering(False))
+
+        # Some stock, but still below the minimum level
+        StockItem.objects.create(part=part, quantity=4)
+        self.assertIn(part.pk, needs_ordering())
+
+        # Place an order which does *not* cover the shortfall (4 + 5 < 10)
+        supplier = Company.objects.create(
+            name='Needs Ordering Supplier', is_supplier=True
+        )
+        supplier_part = SupplierPart.objects.create(
+            part=part, supplier=supplier, SKU='NEEDS-ORDERING'
+        )
+        order = PurchaseOrder.objects.create(
+            supplier=supplier,
+            reference='PO-99999',
+            status=PurchaseOrderStatus.PLACED.value,
+        )
+        line = PurchaseOrderLineItem.objects.create(
+            order=order, part=supplier_part, quantity=5
+        )
+
+        self.assertIn(part.pk, needs_ordering())
+
+        # Increase the ordered quantity to cover the shortfall (4 + 6 >= 10)
+        line.quantity = 6
+        line.save()
+
+        self.assertNotIn(part.pk, needs_ordering())
+        self.assertIn(part.pk, needs_ordering(False))
+
+        # Without a minimum stock level, the part does not need ordering at all
+        line.delete()
+        self.assertIn(part.pk, needs_ordering())
+
+        part.minimum_stock = 0
+        part.save()
+
+        self.assertNotIn(part.pk, needs_ordering())
+
+        # Results are consistent: each part is in exactly one of the two sets
+        self.assertEqual(
+            len(needs_ordering()) + len(needs_ordering(False)), Part.objects.count()
+        )
+
     def test_high_stock(self):
         """Test the 'high_stock' filter."""
         part = Part.objects.create(

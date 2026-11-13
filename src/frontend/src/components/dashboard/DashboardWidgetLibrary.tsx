@@ -90,6 +90,17 @@ function BuiltinQueryCountWidgets(): DashboardWidgetProps[] {
       params: { stock_to_build: true }
     }),
     QueryCountDashboardWidget({
+      title: t`Needs Ordering`,
+      label: 'need-ord',
+      description: t`Show parts where the quantity on order does not cover the required quantity or minimum stock level`,
+      modelType: ModelType.part,
+      params: {
+        active: true,
+        needs_ordering: true,
+        virtual: false
+      }
+    }),
+    QueryCountDashboardWidget({
       title: t`Expired Stock Items`,
       label: 'exp-stk',
       description: t`Show the number of stock items which have expired`,
