@@ -1,10 +1,13 @@
 """InvenTree API version information."""
 
 # InvenTree API version
-INVENTREE_API_VERSION = 575
+INVENTREE_API_VERSION = 576
 """Increment this API version number whenever there is a significant change to the API that any clients need to know about."""
 
 INVENTREE_API_TEXT = """
+
+v576 -> 2026-11-12 : https://github.com/inventree/InvenTree/pull/XXXXX
+    - Adds bulk create support to the BomItem API endpoint (POST a list of items)
 
 v575 -> 2026-11-10 : https://github.com/inventree/InvenTree/pull/13208
     - Adds optional read-only "consumed_by_detail" to the StockItem API
