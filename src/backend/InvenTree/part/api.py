@@ -17,6 +17,7 @@ import common.serializers
 import part.tasks as part_tasks
 from data_exporter.mixins import DataExportViewMixin
 from InvenTree.api import (
+    BulkCreateMixin,
     BulkDeleteMixin,
     BulkUpdateMixin,
     ListCreateDestroyAPIView,
@@ -1397,6 +1398,7 @@ class BomOutputOptions(OutputConfiguration):
 
 class BomList(
     BomMixin,
+    BulkCreateMixin,
     BulkUpdateMixin,
     DataExportViewMixin,
     OutputOptionsMixin,
@@ -1405,8 +1407,11 @@ class BomList(
     """API endpoint for accessing a list of BomItem objects.
 
     - GET: Return list of BomItem objects
-    - POST: Create a new BomItem object
+    - POST: Create a new BomItem object (or multiple objects, if a list is provided)
     """
+
+    # Bulk create: the same sub_part cannot be provided twice for the same assembly
+    unique_create_fields = ['part', 'sub_part']
 
     output_options = BomOutputOptions
     filterset_class = BomFilter
