@@ -1,6 +1,6 @@
 """Provides a JSON API for the Part app."""
 
-from django.db.models import Count, F, Q
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q
 from django.urls import include, path
 from django.utils.translation import gettext_lazy as _
 
@@ -819,6 +819,47 @@ class PartFilter(FilterSet):
         return queryset.filter(
             required_for_build_orders__lte=F('allocated_to_build_orders')
         )
+
+    needs_ordering = rest_filters.BooleanFilter(
+        label='Needs ordering', method='filter_needs_ordering'
+    )
+
+    def filter_needs_ordering(self, queryset, name, value):
+        """Filter the queryset based on whether more stock needs to be ordered.
+
+        A part "needs ordering" if the quantity which is already on order
+        is not sufficient to cover either:
+
+        - The quantity required for outstanding (build and sales) orders
+        - The minimum stock level (if specified)
+
+        Note: This makes use of values which are already annotated to the queryset,
+        so no further subqueries are required.
+        """
+        queryset = queryset.alias(
+            # Shortfall against order requirements, after pending deliveries
+            required_shortfall=ExpressionWrapper(
+                F('required_for_build_orders')
+                + F('required_for_sales_orders')
+                - F('total_in_stock')
+                - F('ordering'),
+                output_field=DecimalField(),
+            ),
+            # Shortfall against the minimum stock level, after pending deliveries
+            minimum_shortfall=ExpressionWrapper(
+                F('minimum_stock') - F('total_in_stock') - F('ordering'),
+                output_field=DecimalField(),
+            ),
+        )
+
+        q_filter = Q(required_shortfall__gt=0) | (
+            Q(minimum_stock__gt=0) & Q(minimum_shortfall__gt=0)
+        )
+
+        if str2bool(value):
+            return queryset.filter(q_filter)
+
+        return queryset.exclude(q_filter)
 
     depleted_stock = rest_filters.BooleanFilter(
         label='Depleted Stock', method='filter_depleted_stock'

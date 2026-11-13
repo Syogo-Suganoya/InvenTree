@@ -81,6 +81,12 @@ export function PartTableFilters(): TableFilter[] {
       type: 'boolean'
     },
     {
+      name: 'needs_ordering',
+      label: t`Needs Ordering`,
+      description: t`Filter by parts where the quantity on order does not cover the required quantity or minimum stock level`,
+      type: 'boolean'
+    },
+    {
       name: 'high_stock',
       label: t`High Stock`,
       description: t`Filter by parts which have high stock`,
