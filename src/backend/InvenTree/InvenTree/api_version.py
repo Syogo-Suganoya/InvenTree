@@ -1,10 +1,13 @@
 """InvenTree API version information."""
 
 # InvenTree API version
-INVENTREE_API_VERSION = 582
+INVENTREE_API_VERSION = 583
 """Increment this API version number whenever there is a significant change to the API that any clients need to know about."""
 
 INVENTREE_API_TEXT = """
+
+v583 -> 2026-11-21 : https://github.com/inventree/InvenTree/pull/XXXXX
+    - Adds bulk create support to the BomItem API endpoint (POST a list of items)
 
 v582 -> 2026-11-19 : https://github.com/inventree/InvenTree/pull/13329
     - The title tag of the part's override_min/max_currency had been moved by the API generator generating diff in the schema, no functional changes
