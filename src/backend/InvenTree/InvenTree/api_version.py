@@ -1,10 +1,14 @@
 """InvenTree API version information."""
 
 # InvenTree API version
-INVENTREE_API_VERSION = 582
+INVENTREE_API_VERSION = 583
 """Increment this API version number whenever there is a significant change to the API that any clients need to know about."""
 
 INVENTREE_API_TEXT = """
+
+v583 -> 2026-11-21 : https://github.com/inventree/InvenTree/pull/XXXXX
+    - Adds "search_fields" query parameter to list endpoints, to limit a search to a subset of the searchable fields
+    - Adds "search_fields" information to the OPTIONS response for list endpoints
 
 v582 -> 2026-11-19 : https://github.com/inventree/InvenTree/pull/13329
     - The title tag of the part's override_min/max_currency had been moved by the API generator generating diff in the schema, no functional changes
