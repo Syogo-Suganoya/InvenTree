@@ -22,6 +22,8 @@ export function bomItemFields({
 }: {
   showAssembly?: boolean;
 }): ApiFormFieldSet {
+  const user = useUserState();
+
   const newPartFields = usePartFields({
     create: true
   });
@@ -36,7 +38,10 @@ export function bomItemFields({
         active: true, // Only show active parts when creating a new BOM item
         component: true
       },
-      addCreateFields: newPartFields
+      // A new part can only be created if the user has permission to do so
+      addCreateFields: user.hasAddRole(UserRoles.part)
+        ? newPartFields
+        : undefined
     },
     raw_amount: {
       label: t`Quantity`,
