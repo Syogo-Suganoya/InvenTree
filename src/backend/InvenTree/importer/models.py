@@ -800,6 +800,8 @@ class DataImportRow(models.Model):
                 value = InvenTree.helpers.str2bool(value)
             elif field_type == 'date':
                 value = self.convert_date_field(value)
+            elif field_type == 'tags':
+                value = self.convert_tags_field(value)
             elif field_type == 'related field':
                 try:
                     value = self.lookup_related_field(
@@ -858,6 +860,19 @@ class DataImportRow(models.Model):
 
         if commit:
             self.save()
+
+    def convert_tags_field(self, value) -> list[str]:
+        """Convert an imported value into a list of tags.
+
+        Tags are provided as a comma-separated string (e.g. "tag1, tag2"),
+        which is how they are handled internally.
+        """
+        if value is None:
+            return []
+
+        items = value if isinstance(value, (list, tuple)) else str(value).split(',')
+
+        return [str(item).strip() for item in items if str(item).strip()]
 
     def convert_date_field(self, value) -> Optional[str]:
         """Convert an incoming date field to the correct format for the database.
@@ -1031,7 +1046,7 @@ class DataImportRow(models.Model):
                 # back to the existing value on the record, not fail validation
                 # or be overwritten with a blank/default value
                 partial=instance is not None,
-                context={'request': request},
+                context={'request': request, 'importing': True},
             )
 
     def _get_update_instance(self, instance_id, queryset):

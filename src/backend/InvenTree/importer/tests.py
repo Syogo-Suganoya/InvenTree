@@ -45,7 +45,8 @@ class ImporterTest(ImporterMixin, InvenTreeTestCase):
 
         session.extract_columns()
 
-        self.assertEqual(session.column_mappings.count(), 14)
+        # One mapping for each importable field (including 'tags')
+        self.assertEqual(session.column_mappings.count(), 15)
 
         # Check some of the field mappings
         for field, col in [
@@ -166,6 +167,63 @@ class ImporterTest(ImporterMixin, InvenTreeTestCase):
             ('not a date', 'not a date'),
         ]:
             self.assertEqual(row.convert_date_field(value), expected, msg=value)
+
+    def test_convert_tags_field(self):
+        """Test conversion of tag values for import."""
+        row = DataImportRow(row_index=0, row_data={})
+
+        for value, expected in [
+            (None, []),
+            ('', []),
+            ('   ', []),
+            ('alpha', ['alpha']),
+            ('alpha,beta', ['alpha', 'beta']),
+            (' alpha , beta ,, ', ['alpha', 'beta']),
+            (['alpha', ' beta '], ['alpha', 'beta']),
+            (123, ['123']),
+        ]:
+            self.assertEqual(row.convert_tags_field(value), expected, msg=value)
+
+    def test_import_tags(self):
+        """Test that the 'tags' field can be imported from a comma-separated list."""
+        from company.models import Company
+
+        data = '\n'.join([
+            'Company name,Company description,Tags',
+            'Tagged company,First company,"alpha, beta"',
+            'Single tag company,Second company,gamma',
+            'Untagged company,Third company,',
+        ])
+
+        session = DataImportSession.objects.create(
+            data_file=ContentFile(data, 'tags.csv'), model_type='company'
+        )
+
+        # The tags field is available for import
+        fields = session.available_fields()
+        self.assertIn('tags', fields)
+        self.assertEqual(fields['tags']['type'], 'tags')
+
+        session.extract_columns()
+
+        self.assertTrue(
+            session.column_mappings.filter(field='tags', column='Tags').exists()
+        )
+
+        session.import_data()
+        self.assertEqual(session.rows.count(), 3)
+
+        for row in session.rows.all():
+            self.assertTrue(row.valid, msg=row.errors)
+            row.validate(commit=True)
+            self.assertTrue(row.complete)
+
+        def tags(name):
+            return sorted(Company.objects.get(name=name).tags.names())
+
+        self.assertEqual(tags('Tagged company'), ['alpha', 'beta'])
+        self.assertEqual(tags('Single tag company'), ['gamma'])
+        self.assertEqual(tags('Untagged company'), [])
 
     def test_import_header_whitespace(self):
         """Test that column headers with leading/trailing whitespace are handled correctly.

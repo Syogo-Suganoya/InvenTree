@@ -88,6 +88,14 @@ function ImporterDataCell({
           );
         }
         break;
+      case 'tags': {
+        const tags = row.data[column.field];
+
+        if (Array.isArray(tags)) {
+          return tags.length > 0 ? tags.join(', ') : '-';
+        }
+        break;
+      }
       default:
         break;
     }

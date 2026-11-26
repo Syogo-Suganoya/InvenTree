@@ -1,10 +1,14 @@
 """InvenTree API version information."""
 
 # InvenTree API version
-INVENTREE_API_VERSION = 584
+INVENTREE_API_VERSION = 585
 """Increment this API version number whenever there is a significant change to the API that any clients need to know about."""
 
 INVENTREE_API_TEXT = """
+
+v585 -> 2026-11-26 : https://github.com/inventree/InvenTree/pull/XXXXX
+    - "tags" fields are now reported with the "tags" type (instead of "list") in OPTIONS responses
+    - "tags" fields can now be imported via the data importer (as a comma-separated list)
 
 v584 -> 2026-11-23 : https://github.com/inventree/InvenTree/pull/13346
     - Adds "search_fields" query parameter to list endpoints, to limit a search to a subset of the searchable fields
