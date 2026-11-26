@@ -35,6 +35,10 @@ Some models allow for mapping based on other "natural key" fields (e.g. the `ref
 !!! warning "Unique Identifiers"
     If a unique identifier cannot be determined for any related field, the user must manually map the relevant field to the correct existing record in the database, during the import process.
 
+### Tags
+
+For models which support tags, the *Tags* field can be imported as a comma-separated list of tag names (e.g. `tag1, tag2, tag3`). Any tags which do not already exist are created automatically.
+
 ## Import Session
 
 Importing data is a multi-step process, which is managed via an *import session*. An import session is created when the user initiates a data import, and is used to track the progress of the data import process.

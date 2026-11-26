@@ -1,7 +1,6 @@
 """Mixin classes for data import/export functionality."""
 
 from rest_framework import fields, serializers
-from taggit.serializers import TagListSerializerField
 
 import InvenTree.serializers
 
@@ -83,11 +82,6 @@ class DataImportSerializerMixin:
 
             # Skip file fields
             if issubclass(field.__class__, fields.FileField):
-                continue
-
-            # Skip tags fields
-            # TODO: Implement tag field import support
-            if issubclass(field.__class__, TagListSerializerField):
                 continue
 
             importable_fields[name] = field

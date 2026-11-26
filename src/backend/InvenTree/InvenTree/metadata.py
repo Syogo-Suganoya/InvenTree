@@ -10,6 +10,7 @@ from rest_framework.fields import empty
 from rest_framework.metadata import SimpleMetadata
 from rest_framework.request import clone_request
 from rest_framework.utils import model_meta
+from taggit.serializers import TagListSerializerField
 
 import common.models
 import InvenTree.permissions
@@ -664,3 +665,4 @@ class InvenTreeMetadata(SimpleMetadata):
 
 InvenTreeMetadata.label_lookup[DependentField] = 'dependent field'
 InvenTreeMetadata.label_lookup[serializers.JSONField] = 'json'
+InvenTreeMetadata.label_lookup[TagListSerializerField] = 'tags'

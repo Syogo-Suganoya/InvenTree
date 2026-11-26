@@ -121,6 +121,20 @@ class FilterableSerializerMixin:
         """Determine if we are exporting data."""
         return getattr(self, '_exporting_data', False)
 
+    def is_importing(self, kwargs: dict) -> bool:
+        """Determine if the serializer is being constructed for data import.
+
+        This is the case if the 'importing' flag is provided either as a keyword argument
+        (when determining the importable fields) or via the serializer context
+        (when validating imported data).
+        """
+        if getattr(self, '_is_importing', False):
+            return True
+
+        context = kwargs.get('context') or {}
+
+        return bool(kwargs.get('importing') or context.get('importing'))
+
     def is_field_included(
         self, field_name: str, field: OptionalField, kwargs: dict
     ) -> bool:
@@ -174,6 +188,10 @@ class FilterableSerializerMixin:
             self.optional_filters[field_ref] = value
 
         field_kwargs = field.serializer_kwargs or {}
+
+        # When importing data, any writable optional fields (e.g. 'tags') are available
+        if self.is_importing(kwargs) and not field_kwargs.get('read_only', False):
+            return self.check_field_permission(field, True)
 
         # Skip filtering for a write request
         # All fields should be present for data creation,
